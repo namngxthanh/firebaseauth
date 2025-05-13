@@ -14,6 +14,9 @@ import * as Yup from "yup";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 
+// import { useTheme } from '../context/ThemeContext'; // Dark/Light mode context
+
+// const { isDarkMode, toggleTheme, theme } = useTheme();
 const LoginSchema = Yup.object().shape({
     email: Yup.string().email("Invalid email").required("Required"),
     password: Yup.string().required("Required"),
@@ -105,7 +108,11 @@ const LoginScreen = ({ navigation }: any) => {
                                 <Text style={styles.error}>{errorState}</Text>
                             )}
 
-                            <TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() =>
+                                    navigation.navigate("ForgotPassword")
+                                }
+                            >
                                 <Text style={styles.forgot}>
                                     Forgot password?
                                 </Text>

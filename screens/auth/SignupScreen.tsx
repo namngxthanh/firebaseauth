@@ -1,228 +1,289 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from "react";
 import {
-  View, Text, TextInput, Button, StyleSheet, Switch, TouchableOpacity
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebaseConfig';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ThemeContext } from '../../context/ThemeContext';
+    View,
+    Text,
+    TextInput,
+    StyleSheet,
+    TouchableOpacity,
+    KeyboardAvoidingView,
+    Platform,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebaseConfig";
+import { useTheme } from "../../context/ThemeContext"; // Dark/Light mode context
 
-type Props = NativeStackScreenProps<any>;
+const SignupSchema = Yup.object().shape({
+    email: Yup.string().email("Invalid email").required("Required"),
 
-const translations = {
-  vi: {
-    email: 'Email',
-    password: 'Mật khẩu',
-    confirmPassword: 'Xác nhận mật khẩu',
-    signup: 'Đăng ký',
-    login: 'Quay lại đăng nhập',
-    invalidEmail: 'Email không hợp lệ',
-    required: 'Bắt buộc',
-    passwordMismatch: 'Mật khẩu không khớp',
-    darkMode: 'Chế độ tối',
-    language: 'Ngôn ngữ',
-  },
-  en: {
-    email: 'Email',
-    password: 'Password',
-    confirmPassword: 'Confirm password',
-    signup: 'Sign up',
-    login: 'Back to Login',
-    invalidEmail: 'Invalid email',
-    required: 'Required',
-    passwordMismatch: 'Passwords do not match',
-    darkMode: 'Dark Mode',
-    language: 'Language',
-  },
-};
+    password: Yup.string().min(6, "Min 6 characters").required("Required"),
 
-const SignupScreen: React.FC<Props> = ({ navigation }) => {
-  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
-  const [language, setLanguage] = useState<'vi' | 'en'>('vi');
-  const [errorState, setErrorState] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    confirm: Yup.string()
+        .required("Required")
+        .test("passwords-match", "Passwords must match", function (value) {
+            return this.parent.password === value;
+        }),
+});
 
-  const t = translations[language];
-  const theme = isDarkMode ? darkTheme : lightTheme;
+const SignupScreen = ({ navigation }: any) => {
+    const [errorState, setErrorState] = useState("");
+    const { isDarkMode } = useTheme();
+    const theme = isDarkMode ? darkTheme : lightTheme;
 
-  const SignupSchema = Yup.object().shape({
-    email: Yup.string().email(t.invalidEmail).required(t.required),
-    password: Yup.string().min(6, t.required).required(t.required),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password')], t.passwordMismatch)
-      .required(t.required),
-  });
+    const handleSignup = async (values: {
+        email: string;
+        password: string;
+        confirm: string;
+    }) => {
+        try {
+            await createUserWithEmailAndPassword(
+                auth,
+                values.email,
+                values.password
+            );
+            // navigate to main screen or login
+        } catch (error: any) {
+            setErrorState(error.message);
+        }
+    };
 
-  const handleSignup = async (values: { email: string; password: string; confirmPassword: string }) => {
-    try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
-      navigation.navigate('Login');
-    } catch (error: any) {
-      setErrorState(error.message);
-    }
-  };
+    return (
+        <LinearGradient
+            colors={["#a445b2", "#fa4299"]}
+            style={styles.container}
+        >
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={[
+                    styles.formContainer,
+                    { backgroundColor: theme.background },
+                ]}
+            >
+                <Text style={[styles.header, { color: theme.text }]}>
+                    Signup Form
+                </Text>
 
-  return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={styles.toggleRow}>
-        <Text style={[styles.toggleLabel, { color: theme.text }]}>{t.language}</Text>
-        <Switch value={language === 'en'} onValueChange={() => setLanguage(language === 'en' ? 'vi' : 'en')} />
-      </View>
-      <View style={styles.toggleRow}>
-        <Text style={[styles.toggleLabel, { color: theme.text }]}>{t.darkMode}</Text>
-        <Switch value={isDarkMode} onValueChange={toggleTheme} />
-      </View>
+                {/* Tabs */}
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity
+                        style={styles.tabInactive}
+                        onPress={() => navigation.navigate("Login")}
+                    >
+                        <Text style={styles.tabTextInactive}>Login</Text>
+                    </TouchableOpacity>
+                    <LinearGradient
+                        colors={["#a445b2", "#fa4299"]}
+                        style={styles.tabActive}
+                    >
+                        <Text style={styles.tabTextActive}>Signup</Text>
+                    </LinearGradient>
+                </View>
 
-      <Text style={[styles.title, { color: theme.text }]}>{t.signup}</Text>
+                <Formik
+                    initialValues={{ email: "", password: "", confirm: "" }}
+                    validationSchema={SignupSchema}
+                    onSubmit={handleSignup}
+                >
+                    {({
+                        handleChange,
+                        handleBlur,
+                        handleSubmit,
+                        values,
+                        errors,
+                        touched,
+                    }) => (
+                        <View>
+                            <TextInput
+                                placeholder="Email Address"
+                                placeholderTextColor={theme.placeholder}
+                                style={[
+                                    styles.input,
+                                    {
+                                        backgroundColor: theme.inputBg,
+                                        color: theme.inputText,
+                                    },
+                                ]}
+                                onChangeText={handleChange("email")}
+                                onBlur={handleBlur("email")}
+                                value={values.email}
+                            />
+                            {touched.email && errors.email && (
+                                <Text style={styles.error}>{errors.email}</Text>
+                            )}
 
-      <Formik
-        initialValues={{ email: '', password: '', confirmPassword: '' }}
-        validationSchema={SignupSchema}
-        onSubmit={handleSignup}
-      >
-        {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
-          <View>
-            <TextInput
-              placeholder={t.email}
-              placeholderTextColor={theme.placeholder}
-              style={[styles.input, {
-                backgroundColor: theme.inputBg,
-                color: theme.inputText,
-                borderColor: theme.border,
-              }]}
-              onChangeText={handleChange('email')}
-              onBlur={handleBlur('email')}
-              value={values.email}
-            />
-            {touched.email && errors.email && <Text style={styles.error}>{errors.email}</Text>}
+                            <TextInput
+                                placeholder="Password"
+                                placeholderTextColor={theme.placeholder}
+                                secureTextEntry
+                                style={[
+                                    styles.input,
+                                    {
+                                        backgroundColor: theme.inputBg,
+                                        color: theme.inputText,
+                                    },
+                                ]}
+                                onChangeText={handleChange("password")}
+                                onBlur={handleBlur("password")}
+                                value={values.password}
+                            />
+                            {touched.password && errors.password && (
+                                <Text style={styles.error}>
+                                    {errors.password}
+                                </Text>
+                            )}
 
-            <View style={[styles.inputWrapper, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
-              <TextInput
-                placeholder={t.password}
-                secureTextEntry={!showPassword}
-                placeholderTextColor={theme.placeholder}
-                style={[styles.inputFlex, { color: theme.inputText }]}
-                onChangeText={handleChange('password')}
-                onBlur={handleBlur('password')}
-                value={values.password}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={22} color={theme.placeholder} />
-              </TouchableOpacity>
-            </View>
-            {touched.password && errors.password && <Text style={styles.error}>{errors.password}</Text>}
+                            <TextInput
+                                placeholder="Confirm Password"
+                                placeholderTextColor={theme.placeholder}
+                                secureTextEntry
+                                style={[
+                                    styles.input,
+                                    {
+                                        backgroundColor: theme.inputBg,
+                                        color: theme.inputText,
+                                    },
+                                ]}
+                                onChangeText={handleChange("confirm")}
+                                onBlur={handleBlur("confirm")}
+                                value={values.confirm}
+                            />
+                            {touched.confirm && errors.confirm && (
+                                <Text style={styles.error}>
+                                    {errors.confirm}
+                                </Text>
+                            )}
+                            {errorState !== "" && (
+                                <Text style={styles.error}>{errorState}</Text>
+                            )}
 
-            <View style={[styles.inputWrapper, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
-              <TextInput
-                placeholder={t.confirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                placeholderTextColor={theme.placeholder}
-                style={[styles.inputFlex, { color: theme.inputText }]}
-                onChangeText={handleChange('confirmPassword')}
-                onBlur={handleBlur('confirmPassword')}
-                value={values.confirmPassword}
-              />
-              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                <Ionicons name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'} size={22} color={theme.placeholder} />
-              </TouchableOpacity>
-            </View>
-            {touched.confirmPassword && errors.confirmPassword && <Text style={styles.error}>{errors.confirmPassword}</Text>}
+                            <TouchableOpacity onPress={() => handleSubmit()}>
+                                <LinearGradient
+                                    colors={["#a445b2", "#fa4299"]}
+                                    style={styles.signupButton}
+                                >
+                                    <Text style={styles.signupText}>
+                                        Signup
+                                    </Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
 
-            {errorState !== '' && <Text style={styles.error}>{errorState}</Text>}
-
-            <View style={styles.button}>
-              <Button title={t.signup} onPress={() => handleSubmit()} color="#007bff" />
-            </View>
-
-            <View style={styles.linkContainer}>
-              <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
-                {t.login}
-              </Text>
-            </View>
-          </View>
-        )}
-      </Formik>
-    </View>
-  );
+                            <View style={styles.bottomText}>
+                                <Text
+                                    style={[
+                                        styles.bottomPlain,
+                                        { color: theme.text },
+                                    ]}
+                                >
+                                    Already have an account?{" "}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate("Login")}
+                                >
+                                    <Text style={styles.signupNow}>Login</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    )}
+                </Formik>
+            </KeyboardAvoidingView>
+        </LinearGradient>
+    );
 };
 
 const lightTheme = {
-  background: '#f9f9f9',
-  text: '#000',
-  inputBg: '#fff',
-  inputText: '#000',
-  placeholder: '#888',
-  border: '#ccc',
+    background: "#fff",
+    text: "#000",
+    inputBg: "#f2f2f2",
+    inputText: "#000",
+    placeholder: "#888",
 };
 
 const darkTheme = {
-  background: '#121212',
-  text: '#fff',
-  inputBg: '#1e1e1e',
-  inputText: '#fff',
-  placeholder: '#aaa',
-  border: '#555',
+    background: "#1e1e1e",
+    text: "#fff",
+    inputBg: "#2c2c2c",
+    inputText: "#fff",
+    placeholder: "#aaa",
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  toggleLabel: {
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-  inputFlex: {
-    flex: 1,
-    paddingVertical: 12,
-  },
-  error: {
-    color: 'red',
-    marginBottom: 10,
-    marginLeft: 4,
-  },
-  button: {
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  linkContainer: {
-    alignItems: 'center',
-  },
-  link: {
-    color: '#007bff',
-    marginTop: 10,
-    fontSize: 14,
-  },
+    container: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    formContainer: {
+        width: "85%",
+        padding: 24,
+        borderRadius: 12,
+        elevation: 10,
+    },
+    header: {
+        fontSize: 26,
+        fontWeight: "bold",
+        textAlign: "center",
+        marginBottom: 20,
+    },
+    tabContainer: {
+        flexDirection: "row",
+        marginBottom: 20,
+        borderRadius: 8,
+        overflow: "hidden",
+    },
+    tabActive: {
+        flex: 1,
+        padding: 12,
+        alignItems: "center",
+    },
+    tabInactive: {
+        flex: 1,
+        padding: 12,
+        backgroundColor: "#fff",
+        borderWidth: 1,
+        borderColor: "#ddd",
+        alignItems: "center",
+    },
+    tabTextActive: {
+        color: "#fff",
+        fontWeight: "600",
+    },
+    tabTextInactive: {
+        color: "#333",
+        fontWeight: "600",
+    },
+    input: {
+        borderRadius: 6,
+        padding: 12,
+        marginBottom: 10,
+    },
+    signupButton: {
+        padding: 12,
+        borderRadius: 8,
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    signupText: {
+        color: "#fff",
+        fontWeight: "bold",
+    },
+    bottomText: {
+        flexDirection: "row",
+        justifyContent: "center",
+    },
+    bottomPlain: {
+        color: "#333",
+    },
+    signupNow: {
+        color: "#fa4299",
+        fontWeight: "600",
+    },
+    error: {
+        color: "red",
+        fontSize: 12,
+        marginBottom: 8,
+    },
 });
 
 export default SignupScreen;

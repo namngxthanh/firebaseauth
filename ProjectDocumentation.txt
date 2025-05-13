@@ -1,0 +1,199 @@
+**Project Documentation: Firebase Realtime App with Expo & TypeScript**
+
+---
+
+## 🔄 Context
+
+This project is built with **Expo + TypeScript**, uses **Firebase Realtime Database**, and has a modular structure with:
+
+* **Authentication system** (Login, Register, Forgot Password)
+* **Theming** (light/dark mode)
+* **Profile/Home management** screen
+
+---
+
+## 📂 Project Folder Structure
+
+```
+LAB4/
+├── assets/
+├── context/
+│   ├── AuthContext.tsx
+│   └── ThemeContext.tsx
+├── navigation/
+│   └── RootNavigator.tsx
+├── screens/
+│   ├── auth/
+│   │   ├── ForgotPasswordScreen.tsx
+│   │   ├── LoginScreen.tsx
+│   │   └── SignupScreen.tsx
+│   └── HomeScreen.tsx
+├── style/
+│   └── theme.ts
+├── App.tsx
+├── firebaseConfig.js
+├── index.js
+├── package.json
+├── tsconfig.json
+└── ...
+```
+
+---
+
+## 🖊 Step-by-Step from B5: Design App
+
+### 1. **Define the Screens to Design**
+
+We will build and integrate the following screens:
+
+#### 📅 LoginScreen.tsx
+
+* Fields: Email, Password
+* Features:
+
+  * Login using Firebase Auth
+  * Navigation to Signup and ForgotPassword
+
+#### ✉️ ForgotPasswordScreen.tsx
+
+* Field: Email
+* Features:
+
+  * Send password reset email via Firebase
+
+#### 👥 SignupScreen.tsx
+
+* Fields: Full Name, Email, Password, Confirm Password, Date of Birth, Gender
+* Features:
+
+  * Register user using Firebase Auth
+  * Save additional info (name, DOB, gender) to Firebase Realtime DB
+
+#### 🏠 HomeScreen.tsx
+
+* Features:
+
+  * Fetch and display user profile from Firebase Realtime DB
+  * Toggle theme (light/dark)
+  * Language switcher (EN/VI)
+  * Logout
+
+### 2. **New Screens to Add**
+
+Create the following new screens:
+
+#### ➕ AddServiceScreen.tsx
+
+* Form: serviceName, description, price
+* Features:
+
+  * Use `Formik` + `Yup` for validation
+  * Store service info to Realtime DB under `/services/{uid}`
+
+#### 📊 ServiceDetailScreen.tsx
+
+* Features:
+
+  * View detailed info of selected service
+  * Navigation to Edit / Delete
+
+#### ✏️ EditServiceScreen.tsx
+
+* Features:
+
+  * Preload form with existing data
+  * Allow update to the service via Realtime DB
+
+#### ❌ DeleteServiceScreen.tsx (Optional Popup or Dialog)
+
+* Features:
+
+  * Confirm deletion of service
+  * Delete service from Realtime DB
+
+---
+
+## 🌐 Navigation Update
+
+Update `RootNavigator.tsx`:
+
+```tsx
+<Stack.Navigator>
+  <Stack.Screen name="Login" component={LoginScreen} />
+  <Stack.Screen name="Signup" component={SignupScreen} />
+  <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+  <Stack.Screen name="Home" component={HomeScreen} />
+  <Stack.Screen name="AddService" component={AddServiceScreen} />
+  <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
+  <Stack.Screen name="EditService" component={EditServiceScreen} />
+</Stack.Navigator>
+```
+
+---
+
+## 📂 Firebase Realtime Database Structure
+
+```json
+{
+  "users": {
+    "uid": {
+      "fullName": "User Name",
+      "email": "user@email.com",
+      "dob": "1990-01-01",
+      "gender": "male"
+    }
+  },
+  "services": {
+    "uid": {
+      "serviceId1": {
+        "name": "Cleaning",
+        "desc": "Deep house cleaning",
+        "price": 50
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ Libraries & Packages
+
+Install necessary dependencies:
+
+```bash
+npm install firebase @react-navigation/native @react-navigation/native-stack \
+  formik yup react-native-paper react-native-vector-icons
+```
+
+---
+
+## 📚 Suggestions for Enhancement
+
+* Use `context/AuthContext` for storing user session
+* Use `context/ThemeContext` for UI theming
+* Store dark/light mode preference in AsyncStorage
+* Integrate multi-language via `i18n-js` if needed
+
+---
+
+## 🌐 Final Notes
+
+* You **must eject Expo to use native modules** like Firebase in full capacity
+* Don't forget to import and initialize Firebase in `firebaseConfig.js`
+* Use Firebase Realtime rules to secure your database
+
+Example:
+
+```json
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null"
+  }
+}
+```
+
+---
+
+**End of Document**

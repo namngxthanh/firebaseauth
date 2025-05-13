@@ -1,22 +1,25 @@
-// theme.ts
 export const lightTheme = {
-  background: '#f9f9f9',
-  text: '#000',
-  inputBg: '#fff',
-  inputText: '#000',
-  placeholder: '#888',
-  border: '#ccc',
-  button: '#007bff',
-  buttonText: '#fff',
+    background: "#ffffff", // nền toàn màn hình
+    text: "#1a1a1a", // màu chữ chính
+    inputBg: "#f2f2f2", // ô nhập
+    inputText: "#000000",
+    placeholder: "#888888",
+    border: "#dddddd",
+    button: ["#a445b2", "#fa4299"], // nút gradient
+    buttonText: "#ffffff",
+    cardBg: "#ffffff", // nền container trắng
+    gradientBackground: ["#ffffff", "#f9f9f9"], // nếu muốn gradient nền
 };
 
 export const darkTheme = {
-  background: '#121212',
-  text: '#fff',
-  inputBg: '#1e1e1e',
-  inputText: '#fff',
-  placeholder: '#aaa',
-  border: '#555',
-  button: '#444',
-  buttonText: '#fff',
+    background: "#1c1c1c",
+    text: "#ffffff",
+    inputBg: "#2c2c2c",
+    inputText: "#ffffff",
+    placeholder: "#aaaaaa",
+    border: "#555555",
+    button: ["#a445b2", "#fa4299"], // giữ màu gradient giống light
+    buttonText: "#ffffff",
+    cardBg: "#2a2a2a",
+    gradientBackground: ["#1c1c1c", "#2c2c2c"],
 };
